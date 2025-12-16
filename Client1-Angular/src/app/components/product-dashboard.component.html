@@ -1,0 +1,216 @@
+<div class="inventory-dashboard">
+  <!-- Header -->
+  <div class="header-section">
+    <h1>
+      <i class="pi pi-box"></i>
+      Gestión de Productos
+    </h1>
+    <p class="subtitle">Sistema de Administración de Productos</p>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="section-card">
+    <h3>
+      <i class="pi pi-cog"></i>
+      Acciones
+    </h3>
+    <div class="quick-actions">
+      <button
+        pButton
+        label="Nuevo Producto"
+        icon="pi pi-plus"
+        (click)="showAddProduct = true"
+      ></button>
+    </div>
+  </div>
+
+  <!-- Products Catalog -->
+  <div class="section-card">
+    <h3>
+      <i class="pi pi-list"></i>
+      Catálogo de Productos
+    </h3>
+    
+    <!-- Filters Removed -->
+
+    <!-- Products Table -->
+    <p-table
+      [value]="filteredProducts"
+      [paginator]="true"
+      [rows]="10"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} productos"
+      [rowsPerPageOptions]="[5,10,20]"
+      styleClass="p-datatable-striped"
+      responsiveLayout="scroll"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="id">
+            Código <p-sortIcon field="id"></p-sortIcon>
+          </th>
+          <th pSortableColumn="nombre">
+            Nombre <p-sortIcon field="nombre"></p-sortIcon>
+          </th>
+          <th pSortableColumn="categoria">
+            Categoría <p-sortIcon field="categoria"></p-sortIcon>
+          </th>
+          <th pSortableColumn="stockActual">
+            Stock <p-sortIcon field="stockActual"></p-sortIcon>
+          </th>
+          <th pSortableColumn="precio">
+            Precio <p-sortIcon field="precio"></p-sortIcon>
+          </th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-product>
+        <tr [class.low-stock]="product.stockActual <= product.stockMinimo">
+          <td>{{product.id}}</td>
+          <td>{{product.nombre}}</td>
+          <td>{{product.categoria}}</td>
+          <td>
+            <span class="stock-indicator"
+                  [class.normal]="product.stockActual > product.stockMinimo"
+                  [class.low]="product.stockActual <= product.stockMinimo && product.stockActual > 0"
+                  [class.empty]="product.stockActual === 0">
+              {{product.stockActual}}
+            </span>
+          </td>
+          <td>${{product.precio | number:'1.0-0'}}</td>
+          <td>
+            <span class="status-badge" [class.active]="product.activo" [class.inactive]="!product.activo">
+              {{product.activo ? 'Activo' : 'Inactivo'}}
+            </span>
+          </td>
+          <td>
+            <button
+              pButton
+              type="button"
+              icon="pi pi-pencil"
+              class="p-button-sm p-button-outlined"
+              (click)="editProduct(product)"
+            ></button>
+            <button
+              pButton
+              type="button"
+              icon="pi pi-trash"
+              class="p-button-sm p-button-danger"
+              (click)="deleteProduct(product)"
+            ></button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Add/Edit Product Dialog -->
+  <p-dialog 
+    [header]="newProduct.id ? 'Editar Producto' : 'Nuevo Producto'" 
+    [(visible)]="showAddProduct" 
+    [modal]="true" 
+    [style]="{width: '600px'}" 
+    styleClass="custom-modal"
+  >
+    <div class="modal-content">
+      <div class="p-field">
+        <label for="productName">Nombre del Producto</label>
+        <input
+          pInputText
+          id="productName"
+          [(ngModel)]="newProduct.nombre"
+          placeholder="Ingrese nombre del producto"
+          class="w-full"
+        />
+      </div>
+      <div class="p-field">
+        <label for="productCategory">Categoría</label>
+        <input
+          pInputText
+          id="productCategory"
+          [(ngModel)]="newProduct.categoria"
+          placeholder="Ingrese categoría"
+          class="w-full"
+        />
+      </div>
+      <div class="p-field">
+        <label for="productDescription">Descripción</label>
+        <textarea
+          pInputTextarea
+          id="productDescription"
+          [(ngModel)]="newProduct.descripcion"
+          placeholder="Ingrese descripción"
+          rows="3"
+          class="w-full"
+        ></textarea>
+      </div>
+      <div class="p-field">
+        <label for="productPrice">Precio</label>
+        <p-inputNumber
+          id="productPrice"
+          [(ngModel)]="newProduct.precio"
+          mode="currency"
+          currency="COP"
+          locale="es-CO"
+          class="w-full"
+        ></p-inputNumber>
+      </div>
+      <div class="p-field">
+        <label for="productStock">Stock</label>
+        <p-inputNumber
+          id="productStock"
+          [(ngModel)]="newProduct.stockActual"
+          class="w-full"
+        ></p-inputNumber>
+      </div>
+      <div class="p-field">
+        <label for="productMinStock">Stock Mínimo</label>
+        <p-inputNumber
+          id="productMinStock"
+          [(ngModel)]="newProduct.stockMinimo"
+          class="w-full"
+        ></p-inputNumber>
+      </div>
+      <div class="p-field">
+        <label for="productMaxStock">Stock Máximo</label>
+        <p-inputNumber
+          id="productMaxStock"
+          [(ngModel)]="newProduct.stockMaximo"
+          class="w-full"
+        ></p-inputNumber>
+      </div>
+      <div class="p-field">
+        <label for="productUnit">Unidad de Medida</label>
+        <input
+          pInputText
+          id="productUnit"
+          [(ngModel)]="newProduct.unidadMedida"
+          placeholder="Ej: Unidad, Caja, Kg"
+          class="w-full"
+        />
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="modal-footer">
+        <button
+          pButton
+          type="button"
+          label="Cancelar"
+          class="p-button-outlined"
+          (click)="showAddProduct = false"
+        ></button>
+        <button
+          pButton
+          type="button"
+          [label]="newProduct.id ? 'Actualizar Producto' : 'Crear Producto'"
+          (click)="newProduct.id ? updateProduct() : addProduct()"
+        ></button>
+      </div>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Confirmation Dialog -->
+  <p-confirmDialog></p-confirmDialog>
+</div>
